@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -24,16 +25,19 @@ public class AdminController {
     }
 
     @GetMapping("/")
-    public String printWelcome(ModelMap model) {
-        List<String> messages = new ArrayList<>();
-        messages.add("Hello!");
-        model.addAttribute("messages", messages);
-        return "index";
+    public String welcomePage() {
+        return "login";
+    }
+
+    @GetMapping("login")
+    public String loginPage() {
+        return "login";
     }
 
     @GetMapping("admin")
-    public String adminPage(Model model) {
+    public String adminPage(@CurrentSecurityContext(expression = "authentication.principal") User principal, Model model) {
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("user", principal);
         return "view/admin";
     }
 
@@ -65,27 +69,12 @@ public class AdminController {
         return "redirect:/admin";
     }
 
-    @GetMapping("admin/edit/{id}")
-    public String pageEditUser(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
-        model.addAttribute("listRoles", roleService.getAllRoles());
-        return "view/edit";
-    }
-
-    @PutMapping("admin/edit")
-    public String pageEdit(User user, BindingResult bindingResult,
+    @PutMapping("admin/edit/{id}")
+    public String pageEdit(@ModelAttribute("user") User user, BindingResult bindingResult,
                            @RequestParam("listRoles") ArrayList<Long> roles) {
-        if (bindingResult.hasErrors()) {
-            return "view/edit";
-        }
         user.setRoles(roleService.findByIdRoles(roles));
         userService.updateUser(user);
         return "redirect:/admin";
-    }
-
-    @GetMapping("/login")
-    public String loginPage() {
-        return "/login";
     }
 
 }

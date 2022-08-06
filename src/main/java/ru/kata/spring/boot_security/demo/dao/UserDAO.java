@@ -1,11 +1,11 @@
 package ru.kata.spring.boot_security.demo.dao;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import ru.kata.spring.boot_security.demo.models.User;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
-@Transactional
 public interface UserDAO {
     List<User> getAllUsers();
 
@@ -18,4 +18,6 @@ public interface UserDAO {
     void updateUser(User updateUser);
 
     void removeUserById(int id);
+
+    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 }

@@ -1,5 +1,7 @@
 package ru.kata.spring.boot_security.demo.dao;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Repository;
 import ru.kata.spring.boot_security.demo.models.User;
 
@@ -9,7 +11,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Repository
-public class UserDAOImpl implements UserDAO{
+public class UserDAOImpl implements UserDAO {
 
     @PersistenceContext()
     private EntityManager entityManager;
@@ -27,7 +29,7 @@ public class UserDAOImpl implements UserDAO{
     @Override
     public User getUserByUsername(String username) {
         TypedQuery<User> q = (entityManager.createQuery("select u from User u " +
-                "join fetch u.roles where u.username = :username", User.class));
+                "left join fetch u.roles where u.username = :username", User.class));
         q.setParameter("username", username);
         return q.getResultList().stream().findFirst().orElse(null);
     }
@@ -48,5 +50,13 @@ public class UserDAOImpl implements UserDAO{
         if (user != null) {
             entityManager.remove(user);
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        if (getUserByUsername(username) == null) {
+            throw new UsernameNotFoundException("user not found");
+        }
+        return getUserByUsername(username);
     }
 }
